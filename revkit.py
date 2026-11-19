@@ -10,15 +10,20 @@ ZIP/TAR/GZ archieven (recursief), PDF, Office (OLE/OOXML macro's), en onbekende 
 Doet ALLEEN statische analyse - de sample wordt nooit uitgevoerd.
 
 Gebruik:
-    python3 revkit.py <bestand> [-o outdir] [--ghidra] [--all-strings] [--carve] [--max-depth N]
+    revkit <bestand> [-o outdir] [--ghidra] [--all-strings] [--carve] [--max-depth N]
+    python3 revkit.py <bestand> ...          (zonder installatie)
 
-Dependencies (pip install --break-system-packages ...):
-    verplicht : capstone pefile
-    aanbevolen: lief pyelftools dnfile oletools
+Installatie:
+    pip install .            # verplicht: capstone pefile
+    pip install ".[full]"    # + lief pyelftools dnfile oletools
     optioneel extern: upx, ilspycmd, jadx, pycdc/decompyle3, Ghidra (GHIDRA_HOME)
+
+Licentie: MIT - zie LICENSE
 """
-import argparse, base64, binascii, collections, gzip, hashlib, io, json, math, os, re
+import argparse, base64, collections, gzip, hashlib, io, json, math, os, re
 import shutil, struct, subprocess, sys, tarfile, tempfile, zipfile, zlib
+
+__version__ = "1.0.0"
 
 try:
     import capstone
@@ -875,8 +880,6 @@ def native_analysis(img, rep, args):
         for a, s in func_stack.get(key, []):
             rep.add("Auth / check-logica (gereconstrueerd)", f"    0x{a:x}  stack-string \"{s}\"")
         # kandidaten: alleen uit functies die echt iets vergelijken/hashen/stack-strings bouwen
-        if not (cmps or crypto or func_stack.get(key)):
-            cmps_callee = False
         for r, s, t in items:
             if not (cmps or crypto):
                 break
@@ -1599,7 +1602,7 @@ def analyze_jar_apk(data, path, rep, outdir, kind):
     jadx = shutil.which("jadx")
     if jadx:
         d = os.path.join(outdir, "jadx")
-        r = subprocess.run([jadx, "-d", d, path], capture_output=True, text=True, timeout=900)
+        subprocess.run([jadx, "-d", d, path], capture_output=True, text=True, timeout=900)
         rep.find(1, "decompile", f"jadx decompilatie -> {d}")
     else:
         rep.find(3, "tool", "Voor volledige Java broncode: installeer jadx (apt install jadx / github.com/skylot/jadx)")
@@ -2083,8 +2086,9 @@ def emit(rep, outdir, depth):
 
 
 def main():
-    ap = argparse.ArgumentParser(description="revkit - universele static reverse-engineering triage")
-    ap.add_argument("file")
+    ap = argparse.ArgumentParser(prog="revkit", description="revkit - universele static reverse-engineering triage")
+    ap.add_argument("file", help="te analyseren bestand (wordt nooit uitgevoerd)")
+    ap.add_argument("-V", "--version", action="version", version=f"%(prog)s {__version__}")
     ap.add_argument("-o", "--outdir", help="output map (default: <file>_revkit)")
     ap.add_argument("--ghidra", action="store_true", help="decompileer relevante functies met Ghidra headless (GHIDRA_HOME)")
     ap.add_argument("--all-strings", action="store_true", help="schrijf alle strings naar strings.txt")
@@ -2093,10 +2097,13 @@ def main():
     args = ap.parse_args()
     if capstone is None or pefile is None:
         print(f"{C['y']}[!] installeer minimaal: pip install capstone pefile lief dnfile oletools{C['x']}")
+    if not os.path.isfile(args.file):
+        ap.error(f"bestand niet gevonden: {args.file}")
     out = args.outdir or (args.file.rstrip("/\\") + "_revkit")
     os.makedirs(out, exist_ok=True)
     analyze_file(args.file, out, args)
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

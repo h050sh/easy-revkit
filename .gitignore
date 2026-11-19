@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+
+# revkit output
+*_revkit/
+
+# Samples - never commit analysed binaries
+samples/
+*.exe
+*.dll
+*.bin
+*.malware
+*.infected
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
