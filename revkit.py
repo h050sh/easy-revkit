@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 revkit.py - universele static reverse-engineering triage tool
-Auteur: Nullpath Security (Haider) / gegenereerd met Claude
+Auteur: Haider / gegenereerd met Claude
 
 Werkt op: PE (native x86/x64, .NET, PyInstaller, Rust/Go/Nim/Delphi), ELF, Mach-O,
 JAR/class/APK/DEX, Python .pyc, scripts (PowerShell/JS/VBS/batch/bash/python),

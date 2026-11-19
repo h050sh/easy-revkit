@@ -122,4 +122,4 @@ security research. Only analyse software you are permitted to analyse.
 
 ## License
 
-[MIT](LICENSE) © Nullpath Security
+[MIT](LICENSE) © Haider
